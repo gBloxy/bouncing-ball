@@ -31,8 +31,13 @@ class Line():
         P2T = distance(P2, T)
         P1P2 = distance(P1, P2)
         
-        alpha = acos((P2T**2 + P1P2**2 - P1T**2) / (2 * P2T * P1P2))
-        if P1[1] < P2[1]:
+        if P1T == 0:
+            alpha = pi
+        elif P2T == 0:
+            alpha = pi / 2
+        else:
+            alpha = acos((P2T**2 + P1P2**2 - P1T**2) / (2 * P2T * P1P2))
+        if P1[1] > P2[1]:
             alpha = pi - alpha
         
         self.angle = alpha
@@ -53,13 +58,13 @@ class Ball():
         A = sqrt(P * (P - d1) * (P - d2) * (P - l.length))
         H = (2 * A) / l.length
         
-        if self.radius - 1 <= H <= self.radius and d1 < l.length and d2 < l.length:
+        if H <= self.radius and d1 < l.length and d2 < l.length:
             return True
         else:
             return False
     
     def bounce(self, l):
-        self.angle = l.angle / 2 + self.angle
+        self.angle = l.angle * 2 - self.angle
     
     def update(self):
         for l in lines:
@@ -72,7 +77,7 @@ class Ball():
         if not ((-10 < self.center[0] < WIN_SIZE[0] + 10) and (-10 < self.center[1] < WIN_SIZE[1] + 10)):
             balls.remove(self)
 
-
+    
 p1 = p2 = None
 
 lines = []
