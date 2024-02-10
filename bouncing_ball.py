@@ -1,4 +1,5 @@
 
+from random import randint
 from sys import exit
 from math import sqrt, cos, sin, acos, pi, radians
 import pygame
@@ -63,13 +64,28 @@ class Ball():
         else:
             return False
     
+    def collide_ball(self, b):
+        if distance(self.center, b.center) < self.radius + b.radius:
+            return True
+        else:
+            return False
+    
     def bounce(self, l):
         self.angle = l.angle * 2 - self.angle
+    
+    def bounce_ball(self, b):
+        b_angle = b.angle
+        b.angle = self.angle
+        self.angle = b_angle
     
     def update(self):
         for l in lines:
             if self.collide(l):
                 self.bounce(l)
+        for b in balls:
+            if b != self:
+                if self.collide_ball(b):
+                    self.bounce_ball(b)
         
         self.center[0] += sin(self.angle) * self.vel
         self.center[1] -= cos(self.angle) * self.vel
@@ -77,7 +93,21 @@ class Ball():
         if not ((-10 < self.center[0] < WIN_SIZE[0] + 10) and (-10 < self.center[1] < WIN_SIZE[1] + 10)):
             balls.remove(self)
 
-    
+
+def add_line():
+    global p1, p2
+    line = Line(p1, p2)
+    if line.length > 10:
+        lines.append(line)
+    p1 = p2 = None
+
+
+def add_ball():
+    global p1
+    balls.append(Ball(mouse_pos, randint(0, 360)))
+    p1 = None
+
+
 p1 = p2 = None
 
 lines = []
@@ -102,37 +132,44 @@ while True:
     for event in pygame.event.get():
         if event.type == pygame.MOUSEBUTTONDOWN:
             
+            # add a new line
             if event.button == 1:
-                p1 = mouse_pos
-                if p2 is not None:
-                    lines.append(Line(p1, p2))
-                    p1 = p2 = None
-               
-            elif event.button == 3:
-                p2 = mouse_pos
-                if p1 is not None:
-                    lines.append(Line(p1, p2))
-                    p1 = p2 = None
+                if p1 is None:
+                    p1 = mouse_pos
+                elif p2 is None:
+                    p2 = mouse_pos
+                    add_line()
             
+            # spawn a new ball at the mouse position by right clicking
+            elif event.button == 3:
+                add_ball()
+        
+        # close the program
         elif event.type == pygame.QUIT:
             pygame.quit()
             exit()
     
-    if keys[pygame.K_SPACE] and key_timer <= 0:
-        balls.append(Ball(mouse_pos))
-        p1 = p2 = None
-        key_timer = 300
-    
     win.fill('black')
     
+    # spawn a new ball at the mouse position by pressing the spacebar
+    if keys[pygame.K_SPACE] and key_timer <= 0:
+        add_ball()
+        key_timer = 300
+    
+    # remove the last line placed
+    if keys[pygame.K_BACKSPACE] and key_timer <= 0 and lines:
+        lines.pop(-1)
+        key_timer = 400
+    
+    # render lines
     for l in lines:
         pygame.draw.line(win, 'white', l.pos1, l.pos2, 4)
     
+    # render line preview
     if p1 is not None:
         pygame.draw.line(win, 'gray', p1, mouse_pos, 3)
-    elif p2 is not None:
-        pygame.draw.line(win, 'gray', p2, mouse_pos, 3)
     
+    # render balls
     for b in balls:
         b.update()
         pygame.draw.circle(win, 'red', b.center, b.radius)
