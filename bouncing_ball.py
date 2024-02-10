@@ -1,5 +1,4 @@
 
-from random import randint
 from sys import exit
 from math import sqrt, cos, sin, acos, pi, radians
 import pygame
@@ -104,7 +103,7 @@ def add_line():
 
 def add_ball():
     global p1
-    balls.append(Ball(mouse_pos, randint(0, 360)))
+    balls.append(Ball(mouse_pos))
     p1 = None
 
 
